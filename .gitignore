@@ -22,6 +22,8 @@ var/
 
 # Logs
 logs/
+logs/django
+logs/nginx
 *.log
 
 # IDE
