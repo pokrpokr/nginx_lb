@@ -1,0 +1,27 @@
+=== Testing log write access ===
+2024/12/02 08:00:16 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:361):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 08:00:35 [error] 14#14: *10 no resolver defined to resolve host.docker.internal, client: 172.18.0.1, server: localhost, request: "GET /projects/ HTTP/1.1", host: "localhost:12345"
+2024/12/02 08:02:55 [error] 14#14: *26 [lua] init_worker_by_lua(nginx.conf:361):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 08:02:59 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:361):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 08:03:02 [error] 14#14: *9 [lua] init_worker_by_lua(nginx.conf:361):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 08:06:46 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:364):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 08:43:56 [error] 14#14: *1303 [lua] init_worker_by_lua(nginx.conf:364):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 08:44:28 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:364):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 08:48:55 [error] 14#14: *249 [lua] init_worker_by_lua(nginx.conf:364):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 08:49:33 [error] 13#13: *1 [lua] init_worker_by_lua(nginx.conf:364):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 08:57:19 [error] 13#13: *129 [lua] init_worker_by_lua(nginx.conf:364):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 08:57:37 [error] 13#13: *1 [lua] init_worker_by_lua(nginx.conf:364):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 09:00:23 [error] 13#13: *71 [lua] init_worker_by_lua(nginx.conf:364):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 09:00:38 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:365):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 09:05:29 [error] 14#14: *193 [lua] init_worker_by_lua(nginx.conf:365):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 09:05:50 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:365):2: === Worker initialization started ===, context: init_worker_by_lua*
+2024/12/02 10:29:19 [error] 14#14: *1548 [lua] init_worker_by_lua(nginx.conf:365):89: Failed to create cleanup timer: process exiting, context: ngx.timer
+=== Testing log write access ===
+2024/12/02 10:31:20 [error] 14#14: *1 [lua] init_worker_by_lua(nginx.conf:365):2: === Worker initialization started ===, context: init_worker_by_lua*

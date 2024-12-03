@@ -1,0 +1,34 @@
+version: '3'
+services:
+  nginx:
+    build: ./nginx_balancer
+    ports:
+      - "12345:80"
+    depends_on:
+      - django
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+    environment:
+      - NGINX_ERROR_LOG_LEVEL=info
+      - HOST_MACHINE_IP=host.docker.internal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  django:
+    build: ./django_server
+    volumes:
+      - ./logs/django:/var/log
+    expose:
+      - "8001"
+      - "8002"
+      - "8003"
+      - "8004"
+      - "8005"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HOST_MACHINE_IP=host.docker.internal

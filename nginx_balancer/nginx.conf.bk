@@ -1,0 +1,470 @@
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    # 添加 DNS 解析器配置
+    resolver 127.0.0.11 ipv6=off;  # Docker 内部 DNS 解析器
+
+    # 定义日志格式
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for" '
+                    '$request_time $upstream_response_time';
+    
+    # 定义日志路径
+    access_log /var/log/nginx/access.log main;
+    error_log /var/log/nginx/error.log error;  # 只记录错误
+    error_log /var/log/nginx/info.log info;    # 记录信息性日志
+
+    lua_shared_dict id_port_mapping 10m;
+    lua_shared_dict port_id_count 10m;
+    lua_shared_dict port_list 1m;
+    lua_shared_dict config 1m;
+
+    lua_package_path '/usr/local/openresty/lualib/?.lua;;';
+
+    server {
+        listen 80;
+        server_name localhost;
+        
+        set $target '';
+
+        location /register_port {
+            content_by_lua_block {
+                ngx.req.read_body()
+                local args = ngx.req.get_post_args()
+                local port = args["port"]
+
+                if port then
+                    local port_list = ngx.shared.port_list
+                    port_list:set(port, true)
+                    ngx.say("Port registered: " .. port)
+                else
+                    ngx.status = ngx.HTTP_BAD_REQUEST
+                    ngx.say("Missing port parameter")
+                end
+            }
+        }
+
+        location ~ ^/project/([0-9]+)/ {
+            content_by_lua_block {
+                local id = ngx.var[1]
+                local id_port_mapping = ngx.shared.id_port_mapping
+                local port_id_count = ngx.shared.port_id_count
+                local port_list = ngx.shared.port_list
+                local timeout_seconds = config:get("timeout_seconds")
+                local now = ngx.now()
+
+                -- 检查 id 是否已经映射到某个端口
+                local port = id_port_mapping:get(id)
+
+                if port then
+                    -- 如果已有映射，更新访问时间和操作时间
+                    local id_set = port_id_count:get(port) or "{}"
+                    id_set = cjson.decode(id_set)
+                    local old_data = id_set[id] or { 
+                        last_access = now,
+                        avg_operation_time = timeout_seconds,
+                        access_time = 1
+                    }
+                    
+                    -- 假设这里从请求中获取操作时间
+                    local operation_time = now - old_data.last_access  -- 本次请求到上次请求的时间差
+                    local new_stats = calculate_avg_operation_time(operation_time, old_data, config:get("decay_factor"))
+                    
+                    -- 更新数据
+                    id_set[id] = {
+                        last_access = now,
+                        avg_operation_time = new_stats.avg_operation_time,
+                        access_time = new_stats.access_time
+                    }
+                    port_id_count:set(port, cjson.encode(id_set))
+                    ngx.log(ngx.INFO, "Existing mapping found for id " .. id .. " to port " .. port)
+                else
+                    -- 如果是新的 id，需要选择负载最小的端口
+                    local ports = port_list:get_keys()
+                    local best_score = nil
+                    local selected_port = nil
+
+                    for _, p in ipairs(ports) do
+                        local score_result = calculate_port_score(p, now, timeout_seconds)
+                        
+                        ngx.log(ngx.INFO, string.format(
+                            "Port %s score calculation: valid_ids=%d, time_factor=%.2f, final_score=%.2f",
+                            p, 
+                            score_result.details.active_id_count or 0,
+                            score_result.details.time_factor or 0.0,
+                            score_result.score or 0.0
+                        ))
+
+                        if not best_score or score_result.score < best_score then
+                            best_score = score_result.score
+                            selected_port = p
+                        end
+                    end
+
+                    if selected_port then
+                        port = selected_port
+                        -- 建立新的映射
+                        id_port_mapping:set(id, port, timeout_seconds)
+                        -- 更新端口的 id 集合
+                        local id_set = port_id_count:get(port) or "{}"
+                        id_set = cjson.decode(id_set)
+                        -- 初始化新 ID 的数据
+                        id_set[id] = {
+                            last_access = now,
+                            avg_operation_time = timeout_seconds,
+                            access_time = 1
+                        }
+                        port_id_count:set(port, cjson.encode(id_set))
+                        ngx.log(ngx.INFO, "New mapping created for id " .. id .. " to port " .. port)
+                    else
+                        ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
+                        ngx.say("No available ports")
+                        return
+                    end
+                end
+
+                -- 构建代理的 URL
+                local proxy_url = "http://" .. config:get("service_host") .. ":" .. port .. ngx.var.request_uri
+                ngx.log(ngx.INFO, "Proxying to: " .. proxy_url)
+                
+                ngx.var.target = proxy_url
+                return ngx.exec("@proxy")
+            }
+        }
+
+        location / {
+            content_by_lua_block {
+                local port_list = ngx.shared.port_list
+                local now = ngx.now()
+                local timeout_seconds = config:get("timeout_seconds")
+                
+                -- 获取所有可用端口
+                local ports = port_list:get_keys()
+                if #ports == 0 then
+                    ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
+                    ngx.say("No available ports")
+                    return
+                end
+
+                -- 选择得分最低的端口
+                local best_score = nil
+                local selected_port = nil
+
+                for _, p in ipairs(ports) do
+                    local score_result = calculate_port_score(p, now, timeout_seconds)
+                    
+                    ngx.log(ngx.INFO, string.format(
+                        "Default route - Port %s score: %.2f",
+                        p, score_result.score
+                    ))
+
+                    if not best_score or score_result.score < best_score then
+                        best_score = score_result.score
+                        selected_port = p
+                    end
+                end
+
+                if selected_port then
+                    -- 构建代理 URL
+                    local proxy_url = "http://" .. config:get("service_host") .. ":" .. selected_port .. ngx.var.request_uri
+                    ngx.log(ngx.INFO, string.format(
+                        "Default route - Forwarding request to port %s (score: %.2f)",
+                        selected_port, best_score
+                    ))
+                    
+                    ngx.var.target = proxy_url
+                    return ngx.exec("@proxy")
+                else
+                    ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
+                    ngx.say("No available ports")
+                    return
+                end
+            }
+        }
+
+        location @proxy {
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 10s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout 30s;
+            proxy_pass $target;
+        }
+
+        location /status/port_stats {
+            content_by_lua_block {
+                local cjson = require "cjson"
+                local port_list = ngx.shared.port_list
+                local now = ngx.now()
+                local timeout = config:get("timeout_seconds")
+                local stats = {}
+                local ports = port_list:get_keys()
+                
+                for _, port in ipairs(ports) do
+                    local score_result = calculate_port_score(port, now, timeout)
+                    
+                    stats[port] = {
+                        active_connections = score_result.details.active_id_count,
+                        current_score = string.format("%.2f", score_result.score),
+                        score_components = {
+                            time_score = string.format("%.2f", score_result.details.score_components.time_score),
+                            count_score = string.format("%.2f", score_result.details.score_components.count_score),
+                            operation_score = string.format("%.2f", score_result.details.score_components.operation_score)
+                        },
+                        performance_metrics = {
+                            avg_operation_time = string.format("%.2f", score_result.details.avg_operation_time),
+                            time_factor = string.format("%.2f", score_result.details.time_factor)
+                        },
+                        id_details = {},
+                        last_check_time = ngx.http_time(now)
+                    }
+
+                    -- 为每个ID添加详细信息
+                    for id, details in pairs(score_result.details.id_details) do
+                        stats[port].id_details[id] = {
+                            last_access = ngx.http_time(details.last_access_time),
+                            time_since_last_access = string.format("%.2f", details.time_since_last_access),
+                            is_active = details.is_active,
+                            time_to_timeout = details.time_to_timeout,
+                            avg_operation_time = string.format("%.2f", details.avg_operation_time)
+                        }
+                    end
+                end
+                
+                -- 设置响应头
+                ngx.header.content_type = "application/json"
+                
+                -- 返回统计结果
+                ngx.say(cjson.encode({
+                    current_time = ngx.http_time(now),
+                    port_statistics = stats
+                }))
+            }
+        }
+    }
+
+    init_by_lua_block {
+        cjson = require "cjson"
+        -- 设置全局配置
+        config = ngx.shared.config
+        config:set("timeout_seconds", 60)    -- 超时
+        config:set("cleanup_interval", 10)   -- 清理间隔时间（秒）
+        config:set("decay_factor", 0.7)      -- 比重
+        config:set("service_host", "django")
+
+        -- 计算端口分数的函数
+        function calculate_port_score(port, now, timeout_seconds)
+            local port_id_count = ngx.shared.port_id_count
+            local id_set = port_id_count:get(port) or "{}"
+            id_set = cjson.decode(id_set)
+            
+            local active_id_count = 0
+            local total_time_diff = 0
+            local total_operation_time = 0
+            local oldest_access = now
+            local id_details = {}
+            local modified = false
+            
+            -- 创建新的 id_set 来存储未过期的 ID
+            local new_id_set = {}
+            
+            for stored_id, data in pairs(id_set) do
+                local time_diff = now - data.last_access
+                local is_active = time_diff <= timeout_seconds
+                
+                if is_active then
+                    -- 只保留活跃的 ID
+                    new_id_set[stored_id] = data
+                    active_id_count = active_id_count + 1
+                    total_time_diff = total_time_diff + time_diff
+                    total_operation_time = total_operation_time + data.avg_operation_time
+                    oldest_access = math.min(oldest_access, data.last_access)
+                    
+                    -- 只为活跃的 ID 添加详情
+                    id_details[stored_id] = {
+                        last_access_time = data.last_access,
+                        time_since_last_access = time_diff,
+                        is_active = true,
+                        time_to_timeout = timeout_seconds - time_diff,
+                        avg_operation_time = data.avg_operation_time
+                    }
+                else
+                    modified = true  -- 标记需要更新 id_set
+                end
+            end
+            
+            -- 如果有过期的 ID 被移除，更新 port_id_count
+            if modified then
+                port_id_count:set(port, cjson.encode(new_id_set))
+                ngx.log(ngx.INFO, string.format(
+                    "Updated ID set for port %s, removed expired IDs",
+                    port
+                ))
+            end
+
+            -- 计算分数的逻辑保持不变
+            local avg_operation = active_id_count > 0 and (total_operation_time / active_id_count) or 0
+            local time_factor = (now - oldest_access)
+
+            -- LRU 权重配置
+            local weights = {
+                recent_usage = 0.5,
+                count = 0.45,
+                operation = 0.05
+            }
+
+            local avg_op_score = avg_operation == 0 and 0 or 1/avg_operation
+            local time_score_cal = time_factor == 0 and 0 or 1/time_factor
+            local score = (time_score_cal * weights.recent_usage) +
+                         (active_id_count * weights.count) +
+                         (avg_op_score * weights.operation)
+
+            return {
+                score = score,
+                details = {
+                    active_id_count = active_id_count,
+                    time_factor = time_factor,
+                    avg_operation_time = avg_operation,
+                    id_details = id_details,  -- 现在只包含活跃的 ID
+                    score_components = {
+                        time_score = time_score_cal,
+                        count_score = active_id_count * weights.count,
+                        operation_score = avg_op_score
+                    }
+                }
+            }
+        end
+
+        function calculate_avg_operation_time(operation_time, old_data, decay_factor)
+            -- 设置默认值
+            operation_time = operation_time or 0
+            old_data = old_data or { avg_operation_time = 0, access_time = 0 }
+            local old_avg = old_data.avg_operation_time == timeout_seconds and 0 or old_data.avg_operation_time
+            -- 确保有访问次数
+            local access_time = old_data.access_time or 1
+            
+            -- 计算新的平均间隔时间
+            -- 新平均 = (旧平均 * 旧访问次数 * (1 - 衰减因子) + 新值 * 衰减因子) / (旧访问次数 + 1)
+            local new_access_time = access_time + 1
+            local new_avg = (old_avg * access_time * (1 - decay_factor) + operation_time * decay_factor) / new_access_time
+            
+            return {
+                avg_operation_time = new_avg,
+                access_time = new_access_time
+            }
+        end
+    }
+
+    init_worker_by_lua_block {
+        ngx.log(ngx.ERR, "=== Worker initialization started ===")  -- 使用 ERR 级别确保能看到
+        
+        local cjson = require "cjson"
+        local config = ngx.shared.config
+
+        local function clean_up()
+            ngx.log(ngx.INFO, "Starting cleanup process...")  -- 添加启动日志
+            
+            local id_port_mapping = ngx.shared.id_port_mapping
+            local port_id_count = ngx.shared.port_id_count
+            local port_list = ngx.shared.port_list
+            local now = ngx.now()
+            local timeout_seconds = config:get("timeout_seconds")
+            local cleanup_interval = config:get("cleanup_interval")
+
+            -- 记录当前状态
+            ngx.log(ngx.INFO, string.format(
+                "Cleanup check - Current time: %.2f, Timeout: %d seconds",
+                now, timeout_seconds
+            ))
+
+            -- 清理过期的 id 映射
+            local keys = id_port_mapping:get_keys()
+            ngx.log(ngx.INFO, string.format("Found %d mappings to check", #keys))
+
+            for _, id in ipairs(keys) do
+                local port = id_port_mapping:get(id)
+                if port then
+                    local id_set = port_id_count:get(port) or "{}"
+                    id_set = cjson.decode(id_set)
+                    local data = id_set[id]
+                    
+                    if data then
+                        local time_diff = now - data.last_access
+                        ngx.log(ngx.INFO, string.format(
+                            "Checking ID %s on port %s - Time since last access: %.2f seconds",
+                            id, port, time_diff
+                        ))
+                        
+                        if time_diff > timeout_seconds then
+                            -- 删除过期映射
+                            id_port_mapping:delete(id)
+                            id_set[id] = nil
+                            local ok, err = port_id_count:set(port, cjson.encode(id_set))
+                            
+                            if ok then
+                                ngx.log(ngx.INFO, string.format(
+                                    "Successfully cleaned up expired ID %s from port %s",
+                                    id, port
+                                ))
+                            else
+                                ngx.log(ngx.ERR, string.format(
+                                    "Failed to update port_id_count for port %s: %s",
+                                    port, err
+                                ))
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- 检查端口状态
+            local ports = port_list:get_keys()
+            ngx.log(ngx.INFO, string.format("Checking %d ports", #ports))
+
+            for _, port in ipairs(ports) do
+                local id_set = port_id_count:get(port) or "{}"
+                id_set = cjson.decode(id_set)
+                
+                local active_count = 0
+                local total_count = 0
+                for id, data in pairs(id_set) do
+                    total_count = total_count + 1
+                    if (now - data.last_access) <= timeout_seconds then
+                        active_count = active_count + 1
+                    end
+                end
+                
+                ngx.log(ngx.INFO, string.format(
+                    "Port %s status: %d active IDs out of %d total",
+                    port, active_count, total_count
+                ))
+            end
+
+            -- 设置下次执行的定时器
+            local ok, err = ngx.timer.at(cleanup_interval, clean_up)
+            if not ok then
+                ngx.log(ngx.ERR, "Failed to create cleanup timer: ", err)
+            else
+                ngx.log(ngx.INFO, string.format(
+                    "Next cleanup scheduled in %d seconds",
+                    cleanup_interval
+                ))
+            end
+        end
+
+        -- 启动定时器
+        local ok, err = ngx.timer.at(0, clean_up)
+        if not ok then
+            ngx.log(ngx.ERR, "Failed to create initial cleanup timer: ", err)
+        else
+            ngx.log(ngx.INFO, "Initial cleanup timer created successfully")
+        end
+    }
+}

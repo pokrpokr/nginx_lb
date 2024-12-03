@@ -1,0 +1,116 @@
+2024-12-02 08:00:16,332 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:00:16,334 INFO supervisord started with pid 1
+2024-12-02 08:00:17,338 INFO spawned: 'django-8001' with pid 7
+2024-12-02 08:00:17,340 INFO spawned: 'django-8002' with pid 8
+2024-12-02 08:00:17,345 INFO spawned: 'django-8003' with pid 9
+2024-12-02 08:00:19,029 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:00:19,029 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:00:19,030 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:02:56,818 WARN received SIGTERM indicating exit request
+2024-12-02 08:02:56,820 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 08:02:56,939 INFO stopped: django-8003 (exit status 0)
+2024-12-02 08:02:57,018 INFO stopped: django-8002 (exit status 0)
+2024-12-02 08:02:57,110 INFO stopped: django-8001 (exit status 0)
+2024-12-02 08:02:59,758 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:02:59,759 INFO supervisord started with pid 1
+2024-12-02 08:03:00,766 INFO spawned: 'django-8001' with pid 7
+2024-12-02 08:03:00,768 INFO spawned: 'django-8002' with pid 8
+2024-12-02 08:03:00,771 INFO spawned: 'django-8003' with pid 9
+2024-12-02 08:03:02,272 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:03:02,272 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:03:02,273 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:03:03,275 WARN received SIGTERM indicating exit request
+2024-12-02 08:03:03,276 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 08:03:03,317 INFO stopped: django-8003 (exit status 0)
+2024-12-02 08:03:03,357 INFO stopped: django-8002 (exit status 0)
+2024-12-02 08:03:03,398 INFO stopped: django-8001 (exit status 0)
+2024-12-02 08:06:46,502 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:06:46,504 INFO supervisord started with pid 1
+2024-12-02 08:06:47,509 INFO spawned: 'django-8001' with pid 6
+2024-12-02 08:06:47,511 INFO spawned: 'django-8002' with pid 7
+2024-12-02 08:06:47,515 INFO spawned: 'django-8003' with pid 8
+2024-12-02 08:06:49,133 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:06:49,134 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:06:49,134 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:43:57,244 WARN received SIGTERM indicating exit request
+2024-12-02 08:43:57,245 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 08:43:57,344 INFO stopped: django-8003 (exit status 0)
+2024-12-02 08:43:57,423 INFO stopped: django-8002 (exit status 0)
+2024-12-02 08:43:57,503 INFO stopped: django-8001 (exit status 0)
+2024-12-02 08:44:28,398 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:44:28,399 INFO supervisord started with pid 1
+2024-12-02 08:44:29,408 INFO spawned: 'django-8001' with pid 7
+2024-12-02 08:44:29,410 INFO spawned: 'django-8002' with pid 8
+2024-12-02 08:44:29,413 INFO spawned: 'django-8003' with pid 9
+2024-12-02 08:44:31,070 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:44:31,070 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:44:31,070 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:48:56,337 WARN received SIGTERM indicating exit request
+2024-12-02 08:48:56,339 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 08:48:56,446 INFO stopped: django-8003 (exit status 0)
+2024-12-02 08:48:56,537 INFO stopped: django-8002 (exit status 0)
+2024-12-02 08:48:56,619 INFO stopped: django-8001 (exit status 0)
+2024-12-02 08:49:33,321 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:49:33,323 INFO supervisord started with pid 1
+2024-12-02 08:49:34,332 INFO spawned: 'django-8001' with pid 7
+2024-12-02 08:49:34,334 INFO spawned: 'django-8002' with pid 8
+2024-12-02 08:49:34,339 INFO spawned: 'django-8003' with pid 9
+2024-12-02 08:49:36,008 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:49:36,008 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:49:36,008 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:57:20,223 WARN received SIGTERM indicating exit request
+2024-12-02 08:57:20,224 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 08:57:20,318 INFO stopped: django-8003 (exit status 0)
+2024-12-02 08:57:20,427 INFO stopped: django-8002 (exit status 0)
+2024-12-02 08:57:20,514 INFO stopped: django-8001 (exit status 0)
+2024-12-02 08:57:37,537 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 08:57:37,539 INFO supervisord started with pid 1
+2024-12-02 08:57:38,544 INFO spawned: 'django-8001' with pid 7
+2024-12-02 08:57:38,546 INFO spawned: 'django-8002' with pid 8
+2024-12-02 08:57:38,552 INFO spawned: 'django-8003' with pid 9
+2024-12-02 08:57:40,083 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:57:40,084 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 08:57:40,084 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:00:24,052 WARN received SIGTERM indicating exit request
+2024-12-02 09:00:24,054 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 09:00:24,146 INFO stopped: django-8003 (exit status 0)
+2024-12-02 09:00:24,247 INFO stopped: django-8002 (exit status 0)
+2024-12-02 09:00:25,339 INFO stopped: django-8001 (exit status 0)
+2024-12-02 09:00:38,252 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 09:00:38,253 INFO supervisord started with pid 1
+2024-12-02 09:00:39,270 INFO spawned: 'django-8001' with pid 7
+2024-12-02 09:00:39,274 INFO spawned: 'django-8002' with pid 8
+2024-12-02 09:00:39,278 INFO spawned: 'django-8003' with pid 9
+2024-12-02 09:00:40,840 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:00:40,841 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:00:40,841 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:05:29,772 WARN received SIGTERM indicating exit request
+2024-12-02 09:05:29,773 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 09:05:29,887 INFO stopped: django-8003 (exit status 0)
+2024-12-02 09:05:29,982 INFO stopped: django-8002 (exit status 0)
+2024-12-02 09:05:30,071 INFO stopped: django-8001 (exit status 0)
+2024-12-02 09:05:50,257 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 09:05:50,258 INFO supervisord started with pid 1
+2024-12-02 09:05:51,267 INFO spawned: 'django-8001' with pid 7
+2024-12-02 09:05:51,269 INFO spawned: 'django-8002' with pid 8
+2024-12-02 09:05:51,273 INFO spawned: 'django-8003' with pid 9
+2024-12-02 09:05:52,850 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:05:52,851 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 09:05:52,851 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 10:29:19,868 WARN received SIGTERM indicating exit request
+2024-12-02 10:29:19,870 INFO waiting for django-8001, django-8002, django-8003 to die
+2024-12-02 10:29:19,987 INFO stopped: django-8003 (exit status 0)
+2024-12-02 10:29:20,078 INFO stopped: django-8002 (exit status 0)
+2024-12-02 10:29:20,169 INFO stopped: django-8001 (exit status 0)
+2024-12-02 10:31:20,778 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-02 10:31:20,779 INFO supervisord started with pid 1
+2024-12-02 10:31:21,787 INFO spawned: 'django-8001' with pid 7
+2024-12-02 10:31:21,790 INFO spawned: 'django-8002' with pid 8
+2024-12-02 10:31:21,799 INFO spawned: 'django-8003' with pid 9
+2024-12-02 10:31:21,803 INFO spawned: 'django-8004' with pid 10
+2024-12-02 10:31:21,807 INFO spawned: 'django-8005' with pid 11
+2024-12-02 10:31:23,757 INFO success: django-8001 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 10:31:23,757 INFO success: django-8002 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 10:31:23,757 INFO success: django-8003 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 10:31:23,758 INFO success: django-8004 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-02 10:31:23,758 INFO success: django-8005 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
